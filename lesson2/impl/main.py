@@ -15,6 +15,8 @@ app = FastAPI()
 
 REDIS_HOST = None
 REPLICA_NAME=None
+SERVICE_HOST=None
+SERVICE_PORT=None
 
 storage = {}
 
@@ -52,9 +54,11 @@ def generate_replica_name():
 
 
 def init_global_variables():
-    global REPLICA_NAME, REDIS_HOST
+    global REPLICA_NAME, REDIS_HOST, SERVICE_HOST, SERVICE_PORT
     REPLICA_NAME = generate_replica_name()
-    REDIS_HOST = os.environ["REDIS_HOST"]    
+    REDIS_HOST = os.environ["REDIS_HOST"]
+    SERVICE_HOST = os.environ["SERVICE_HOST"]
+    SERVICE_PORT = os.environ["SERVICE_PORT"]
 
 def register_service():
     host = REDIS_HOST
@@ -69,7 +73,11 @@ def register_service():
         password
     )
     
-    service_discovery.register(replica_name=REPLICA_NAME)
+    service_discovery.register(
+        replica_name=REPLICA_NAME, 
+        service_host=SERVICE_HOST, 
+        service_port=SERVICE_PORT
+    )
 
 def unregister_service():
     service_discovery = sd.get_service_discovery()

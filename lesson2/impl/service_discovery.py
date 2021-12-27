@@ -13,11 +13,10 @@ class ServiceDiscovery:
             password=password
         )
 
-    def register(self, replica_name):
+    def register(self, replica_name, service_host, service_port):
         self._client.lpush("web_app", replica_name)
-        self._client.hset(name = replica_name, key="host", value=self.host)
-        self._client.hset(name = replica_name, key="port", value=self.port)
-
+        self._client.hset(name = replica_name, key="host", value=service_host)
+        self._client.hset(name = replica_name, key="port", value=service_port)
 
     @retry(redis.exceptions.ConnectionError, tries=3, delay=2) 
     def unregister(self, replica_name):        
