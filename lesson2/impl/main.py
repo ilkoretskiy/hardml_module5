@@ -4,11 +4,12 @@ import requests
 import logging
 import uuid
 import os
+import asyncio
+import time
 import  service_discovery as sd
 
 
-
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s;%(levelname)s;%(message)s")
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -43,6 +44,9 @@ def update_secret_number():
             print(e.args)
 
         retries += 1
+
+    if result is None:
+        raise ValueError("Can't get a secret value from a server")
 
     storage['secret_number'] = result
 
@@ -85,19 +89,23 @@ def unregister_service():
     service_discovery.unregister(REPLICA_NAME)
 
 @app.on_event('startup')
-def startup_event():
+async def startup_event():
     init_global_variables()
     update_secret_number()
     register_service()
 
-
 @app.on_event("shutdown")
-def shutdown_event():
+async def shutdown_event():
+    logger.warning("shutdown_event")
     unregister_service()
+    
+    logger.info(f"Start sleep {time.monotonic()}")
+    await asyncio.sleep(15)
+    logger.info(f"End sleep {time.monotonic()}")
 
 
 @app.get("/return_secret_number")
-def read_item():
+async def read_item():
     return {
         "secret_number" : storage['secret_number']
     }
